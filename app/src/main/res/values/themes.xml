@@ -1,0 +1,7 @@
+<resources>
+    <style name="Theme.UmiioCinema" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowBackground">#070709</item>
+        <item name="android:colorBackground">#070709</item>
+    </style>
+</resources>

@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Q1 Cinema Пульт</title>
+<style>
+  :root {
+    --bg: #0b0c10;
+    --card: #151720;
+    --card-border: #232635;
+    --accent: #e50914;
+    --accent-hover: #ff1e29;
+    --text: #f3f4f8;
+    --muted: #8b90a5;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+  body {
+    margin: 0; padding: 0;
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    display: flex; flex-direction: column; height: 100dvh; overflow: hidden;
+  }
+  header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 18px; background: var(--card); border-bottom: 1px solid var(--card-border);
+  }
+  .brand { font-weight: 700; font-size: 17px; display: flex; align-items: center; gap: 8px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+  .dot.offline { background: #ef4444; box-shadow: none; }
+  .home-btn {
+    background: #232635; color: var(--text); border: none; border-radius: 10px;
+    padding: 8px 12px; font-size: 13px; font-weight: 600;
+  }
+
+  main { flex: 1; overflow-y: auto; padding: 16px; display: none; flex-direction: column; gap: 14px; }
+  main.active { display: flex; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--card-border);
+    border-radius: 16px; padding: 16px;
+  }
+  label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+  input[type="text"] {
+    width: 100%; background: #0d0e14; border: 1px solid #2b2f42; color: var(--text);
+    border-radius: 12px; padding: 13px 14px; font-size: 15px; outline: none; user-select: text;
+  }
+  input[type="text"]:focus { border-color: var(--accent); }
+
+  .btn {
+    width: 100%; background: var(--accent); color: #fff; border: none; border-radius: 12px;
+    padding: 14px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 10px;
+    transition: transform 0.08s;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-secondary {
+    background: #222636; color: var(--text); border: 1px solid #30354b;
+    border-radius: 12px; padding: 12px; font-size: 14px; font-weight: 600; cursor: pointer;
+  }
+  .btn-secondary:active { background: #2d3247; }
+
+  .row { display: flex; gap: 10px; }
+  .row > * { flex: 1; }
+
+  .mode-pills { display: flex; gap: 6px; margin-top: 10px; }
+  .pill {
+    flex: 1; text-align: center; padding: 9px 6px; border-radius: 10px;
+    background: #0d0e14; border: 1px solid #2b2f42; color: var(--muted); font-size: 12px; font-weight: 600;
+  }
+  .pill.active { background: rgba(229, 9, 20, 0.16); border-color: var(--accent); color: #fff; }
+
+  .stream-banner {
+    display: none; background: linear-gradient(135deg, #1e1b4b, #31102f);
+    border: 1px solid #a855f7; border-radius: 16px; padding: 14px;
+  }
+  .stream-banner.show { display: block; }
+
+  .play-big {
+    height: 74px; font-size: 22px; border-radius: 18px;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  input[type="range"] {
+    width: 100%; accent-color: var(--accent); height: 6px; margin: 10px 0;
+  }
+  .time-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+
+  #trackpad {
+    flex: 1; min-height: 230px; background: radial-gradient(circle at center, #1b1e2b 0%, #11131b 100%);
+    border: 1px dashed #343952; border-radius: 20px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: var(--muted); font-size: 14px; touch-action: none; position: relative;
+  }
+
+  nav {
+    display: flex; background: var(--card); border-top: 1px solid var(--card-border);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .nav-item {
+    flex: 1; padding: 12px 0; text-align: center; color: var(--muted);
+    font-size: 12px; font-weight: 600; cursor: pointer;
+  }
+  .nav-item.active { color: var(--accent); }
+  .nav-icon { font-size: 20px; display: block; margin-bottom: 3px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand"><span id="statusDot" class="dot"></span> Q1 Cinema</div>
+  <button class="home-btn" onclick="ctrl('home')">На главный</button>
+</header>
+
+<main id="tab-cinema" class="active">
+  <div id="streamBanner" class="stream-banner">
+    <div style="font-weight:700; font-size:14px; margin-bottom:6px;">🔥 Найден прямой видеопоток на странице!</div>
+    <div style="font-size:12px; color:#d8b4fe; margin-bottom:10px;">Переключись в аппаратный плеер — без рекламы и тормозов на 2 ГБ ОЗУ.</div>
+    <button class="btn" style="margin-top:0; background:#9333ea;" onclick="ctrl('injectStream')">Открыть в нативном плеере</button>
+  </div>
+
+  <div class="card">
+    <label>Ссылка на фильм, сайт или поисковый запрос</label>
+    <input type="text" id="urlInput" placeholder="Вставь ссылку (.m3u8, сайт) или название фильма...">
+    <div class="mode-pills">
+      <div class="pill active" data-mode="auto" onclick="setMode(this)">Авто</div>
+      <div class="pill" data-mode="native" onclick="setMode(this)">Плеер (60 FPS)</div>
+      <div class="pill" data-mode="web" onclick="setMode(this)">Браузер (AdBlock)</div>
+    </div>
+    <button class="btn" onclick="launchUrl()">▶ Запустить на проекторе</button>
+  </div>
+
+  <div class="card">
+    <label>Быстрый запуск</label>
+    <div class="row">
+      <button class="btn-secondary" onclick="quickOpen('https://www.youtube.com/tv')">YouTube TV</button>
+      <button class="btn-secondary" onclick="quickOpen('https://vkvideo.ru')">VK Видео</button>
+    </div>
+    <div class="row" style="margin-top:10px;">
+      <button class="btn-secondary" onclick="quickOpen('https://www.google.com')">Поиск Google</button>
+      <button class="btn-secondary" onclick="ctrl('settings')">Настройки Wi-Fi</button>
+    </div>
+  </div>
+</main>
+
+<main id="tab-player">
+  <div class="card">
+    <label>Перемотка</label>
+    <input type="range" id="seekBar" min="0" max="100" value="0" onchange="seekSlider(this.value)">
+    <div class="time-row">
+      <span id="curTime">00:00</span>
+      <span id="durTime">00:00</span>
+    </div>
+
+    <button class="btn play-big" id="playPauseBtn" onclick="ctrl('toggle')">⏯ Пауза / Пуск</button>
+
+    <div class="row" style="margin-top:12px;">
+      <button class="btn-secondary" onclick="ctrl('seekRel', '-60')">⏪ -1 мин</button>
+      <button class="btn-secondary" onclick="ctrl('seekRel', '-10')">↺ -10с</button>
+      <button class="btn-secondary" onclick="ctrl('seekRel', '10')">↻ +10с</button>
+      <button class="btn-secondary" onclick="ctrl('seekRel', '60')">⏩ +1 мин</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <label>Звук и Экран</label>
+    <div class="row">
+      <button class="btn-secondary" onclick="ctrl('volDown')">🔉 Тише</button>
+      <button class="btn-secondary" onclick="ctrl('mute')">🔇 Без звука</button>
+      <button class="btn-secondary" onclick="ctrl('volUp')">🔊 Громче</button>
+    </div>
+    <div class="row" style="margin-top:10px;">
+      <button class="btn-secondary" onclick="ctrl('resize')">⛶ Во весь экран / Масштаб</button>
+      <button class="btn-secondary" onclick="ctrl('back')">↩ Назад</button>
+    </div>
+  </div>
+</main>
+
+<main id="tab-mouse">
+  <div class="card" style="padding:12px;">
+    <div class="row">
+      <input type="text" id="textInput" placeholder="Ввести текст в поиск на проекторе...">
+      <button class="btn" style="width:auto; margin-top:0; padding:0 18px;" onclick="sendText()">ОК</button>
+    </div>
+  </div>
+
+  <div id="trackpad">
+    <div style="font-size:26px; margin-bottom:6px;">🖱</div>
+    <div>Води пальцем как по тачпаду</div>
+    <div style="font-size:12px; margin-top:4px; opacity:0.7;">Короткий тап = Клик мыши</div>
+  </div>
+
+  <div class="row">
+    <button class="btn-secondary" onclick="mouseApi('click')">ЛКМ (Клик)</button>
+    <button class="btn-secondary" onclick="ctrl('back')">↩ Назад</button>
+    <button class="btn-secondary" onclick="mouseApi('scroll', 0, -350)">▲ Вверх</button>
+    <button class="btn-secondary" onclick="mouseApi('scroll', 0, 350)">▼ Вниз</button>
+  </div>
+</main>
+
+<nav>
+  <div class="nav-item active" onclick="switchTab('cinema', this)">
+    <span class="nav-icon">🎬</span>Кино
+  </div>
+  <div class="nav-item" onclick="switchTab('player', this)">
+    <span class="nav-icon">⏯</span>Пульт
+  </div>
+  <div class="nav-item" onclick="switchTab('mouse', this)">
+    <span class="nav-icon">🖱</span>Тачпад
+  </div>
+</nav>
+
+<script>
+  let selectedMode = 'auto';
+  let totalDuration = 0;
+
+  function vib() { if (navigator.vibrate) navigator.vibrate(15); }
+
+  function switchTab(name, el) {
+    vib();
+    document.querySelectorAll('main').forEach(m => m.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    el.classList.add('active');
+  }
+
+  function setMode(el) {
+    vib();
+    document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    selectedMode = el.dataset.mode;
+  }
+
+  function postForm(url, data) {
+    const body = new URLSearchParams(data);
+    return fetch(url, { method: 'POST', body });
+  }
+
+  function launchUrl() {
+    vib();
+    const url = document.getElementById('urlInput').value.trim();
+    if (!url) return;
+    postForm('/api/play', { url, mode: selectedMode });
+  }
+
+  function quickOpen(url) {
+    vib();
+    document.getElementById('urlInput').value = url;
+    postForm('/api/play', { url, mode: 'web' });
+  }
+
+  function ctrl(action, value = '') {
+    vib();
+    postForm('/api/control', { action, value });
+  }
+
+  function seekSlider(val) {
+    if (totalDuration > 0) {
+      const targetMs = Math.floor((val / 100) * totalDuration);
+      ctrl('seekTo', String(targetMs));
+    }
+  }
+
+  function sendText() {
+    vib();
+    const inp = document.getElementById('textInput');
+    if (!inp.value) return;
+    postForm('/api/mouse', { action: 'text', text: inp.value });
+    inp.value = '';
+  }
+
+  function mouseApi(action, dx = 0, dy = 0) {
+    vib();
+    postForm('/api/mouse', { action, dx: String(dx), dy: String(dy) });
+  }
+
+  const pad = document.getElementById('trackpad');
+  let lastX = 0, lastY = 0, startX = 0, startY = 0, startTime = 0;
+  let pendingDx = 0, pendingDy = 0, moveTimer = null;
+
+  pad.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    lastX = startX = t.clientX;
+    lastY = startY = t.clientY;
+    startTime = Date.now();
+  }, { passive: true });
+
+  pad.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    const t = e.touches[0];
+    const dx = (t.clientX - lastX) * 2.1;
+    const dy = (t.clientY - lastY) * 2.1;
+    lastX = t.clientX;
+    lastY = t.clientY;
+    pendingDx += dx;
+    pendingDy += dy;
+
+    if (!moveTimer) {
+      moveTimer = setTimeout(() => {
+        postForm('/api/mouse', {
+          action: 'move',
+          dx: pendingDx.toFixed(1),
+          dy: pendingDy.toFixed(1)
+        });
+        pendingDx = 0;
+        pendingDy = 0;
+        moveTimer = null;
+      }, 35);
+    }
+  }, { passive: false });
+
+  pad.addEventListener('touchend', (e) => {
+    const dt = Date.now() - startTime;
+    const dist = Math.hypot(lastX - startX, lastY - startY);
+    if (dt < 230 && dist < 12) {
+      mouseApi('click');
+    }
+  });
+
+  function fmtTime(ms) {
+    if (!ms || ms <= 0) return '00:00';
+    const totalSec = Math.floor(ms / 1000);
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+    const mm = String(m).padStart(2, '0');
+    const ss = String(s).padStart(2, '0');
+    return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+  }
+
+  setInterval(async () => {
+    try {
+      const res = await fetch('/api/status');
+      const st = await res.json();
+      document.getElementById('statusDot').classList.remove('offline');
+
+      const banner = document.getElementById('streamBanner');
+      if (st.mode === 'web' && st.detectedStream) {
+        banner.classList.add('show');
+      } else {
+        banner.classList.remove('show');
+      }
+
+      if (st.duration > 0) {
+        totalDuration = st.duration;
+        document.getElementById('curTime').innerText = fmtTime(st.position);
+        document.getElementById('durTime').innerText = fmtTime(st.duration);
+        document.getElementById('seekBar').value = Math.min(100, Math.floor((st.position / st.duration) * 100));
+      }
+    } catch (e) {
+      document.getElementById('statusDot').classList.add('offline');
+    }
+  }, 1500);
+</script>
+</body>
+</html>
